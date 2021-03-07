@@ -3,11 +3,14 @@ package com.samsad.mvvvmnewsapp
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.samsad.mvvvmnewsapp.databinding.ActivityMainBinding
 import com.samsad.mvvvmnewsapp.features.bookmarks.BookmarksFragment
 import com.samsad.mvvvmnewsapp.features.breakingnews.BreakingNewsFragment
 import com.samsad.mvvvmnewsapp.features.searchnews.SearchNewsFragment
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
 
     private lateinit var breakingNewsFragment: BreakingNewsFragment
     private lateinit var searchNewsFragment: SearchNewsFragment
@@ -35,7 +38,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         if (savedInstanceState == null) {
 
@@ -60,6 +64,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         selectFragment(selectedFragment)
+        binding.bottomNav.setOnNavigationItemSelectedListener { menuItem ->
+            val fragment = when (menuItem.itemId) {
+                R.id.nav_breaking -> breakingNewsFragment
+                R.id.nav_search -> searchNewsFragment
+                R.id.nav_bookmark -> bookmarksFragment
+                else -> throw IllegalArgumentException("Unexpected item id")
+            }
+            selectFragment(fragment)
+            true
+        }
+    }
+
+    override fun onBackPressed() {
+        if (selectedIndex != 0) {
+            binding.bottomNav.selectedItemId = R.id.nav_breaking
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
