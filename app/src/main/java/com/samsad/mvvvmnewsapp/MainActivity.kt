@@ -49,13 +49,26 @@ class MainActivity : AppCompatActivity() {
                 .add(R.id.fragment_container, bookmarksFragment, TAG_BOOKMARKS_FRAGMENT)
                 .commit()
         } else {
+            breakingNewsFragment =
+                supportFragmentManager.findFragmentByTag(TAG_BREAKING_NEWS_FRAGMENT) as BreakingNewsFragment
+            searchNewsFragment =
+                supportFragmentManager.findFragmentByTag(TAG_SEARCH_NEWS_FRAGMENT) as SearchNewsFragment
+            bookmarksFragment =
+                supportFragmentManager.findFragmentByTag(TAG_BOOKMARKS_FRAGMENT) as BookmarksFragment
 
+            selectedIndex = savedInstanceState.getInt(KEY_SELECTED_INDEX, 0)
         }
 
         selectFragment(selectedFragment)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_SELECTED_INDEX, selectedIndex)
     }
 }
 
 private const val TAG_BREAKING_NEWS_FRAGMENT = "TAG_BREAKING_NEWS_FRAGMENT"
 private const val TAG_SEARCH_NEWS_FRAGMENT = "TAG_SEARCH_NEWS_FRAGMENT"
 private const val TAG_BOOKMARKS_FRAGMENT = "TAG_BOOKMARKS_FRAGMENT"
+private const val KEY_SELECTED_INDEX = "KEY_SELECTED_INDEX"
