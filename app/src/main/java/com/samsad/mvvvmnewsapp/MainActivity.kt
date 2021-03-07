@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun selectFragment(selectedFragment: Fragment) {
         var transaction = supportFragmentManager.beginTransaction()
-        fragments.forEachIndexed() { index, fragment ->
+        fragments.forEachIndexed { index, fragment ->
             if (selectedFragment == fragment) {
                 transaction = transaction.attach(fragment)
                 selectedIndex = index
