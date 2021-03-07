@@ -34,6 +34,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
         transaction.commit()
+
+        title = when (selectedFragment) {
+            is BreakingNewsFragment -> getString(R.string.title_breaking_news)
+            is SearchNewsFragment -> getString(R.string.title_search_news)
+            is BookmarksFragment -> getString(R.string.title_bookmarks)
+            else -> ""
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
