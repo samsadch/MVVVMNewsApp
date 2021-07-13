@@ -22,7 +22,6 @@ class MainActivity : AppCompatActivity() {
         get() = arrayOf(breakingNewsFragment, searchNewsFragment, breakingNewsFragment)
 
     private var selectedIndex = 0
-
     private val selectedFragment get() = fragments[selectedIndex]
 
     private fun selectFragment(selectedFragment: Fragment) {
@@ -36,7 +35,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         transaction.commit()
-
         title = when (selectedFragment) {
             is BreakingNewsFragment -> getString(R.string.title_breaking_news)
             is SearchNewsFragment -> getString(R.string.title_search_news)
@@ -51,11 +49,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         if (savedInstanceState == null) {
-
             breakingNewsFragment = BreakingNewsFragment()
             searchNewsFragment = SearchNewsFragment()
             bookmarksFragment = BookmarksFragment()
-
             supportFragmentManager.beginTransaction()
                 .add(R.id.fragment_container, breakingNewsFragment, TAG_BREAKING_NEWS_FRAGMENT)
                 .add(R.id.fragment_container, searchNewsFragment, TAG_SEARCH_NEWS_FRAGMENT)
@@ -68,17 +64,17 @@ class MainActivity : AppCompatActivity() {
                 supportFragmentManager.findFragmentByTag(TAG_SEARCH_NEWS_FRAGMENT) as SearchNewsFragment
             bookmarksFragment =
                 supportFragmentManager.findFragmentByTag(TAG_BOOKMARKS_FRAGMENT) as BookmarksFragment
-
             selectedIndex = savedInstanceState.getInt(KEY_SELECTED_INDEX, 0)
         }
 
         selectFragment(selectedFragment)
-        binding.bottomNav.setOnNavigationItemSelectedListener { menuItem ->
-            val fragment = when (menuItem.itemId) {
+
+        binding.bottomNav.setOnNavigationItemSelectedListener { item ->
+            val fragment = when (item.itemId) {
                 R.id.nav_breaking -> breakingNewsFragment
                 R.id.nav_search -> searchNewsFragment
                 R.id.nav_bookmark -> bookmarksFragment
-                else -> throw IllegalArgumentException("Unexpected item id")
+                else -> throw IllegalArgumentException("Unexpected ItemId")
             }
             selectFragment(fragment)
             true
