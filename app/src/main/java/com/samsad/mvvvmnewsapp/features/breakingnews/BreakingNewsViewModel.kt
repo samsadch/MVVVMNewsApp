@@ -21,6 +21,9 @@ class BreakingNewsViewModel @Inject constructor(
     val breakingNews: Flow<List<NewsArticle>> = breakingNewsFlow
 
     init {
+        //Coroutines advantages
+        //1.Remove callbacks
+        //2.structured concurrency -
         viewModelScope.launch {
             val news = repository.getBreakingNews()
             breakingNewsFlow.value = news

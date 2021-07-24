@@ -7,6 +7,7 @@ import com.samsad.mvvvmnewsapp.util.networkBoundResource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+//When its time to instantiate this class, injects the dependencies from the DI Module
 class NewsRepository @Inject constructor(
     private val newsApi: NewsApi,
     private val newsArticleDb: NewsArticleDatabase
