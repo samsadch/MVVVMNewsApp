@@ -2,7 +2,7 @@ package com.samsad.mvvvmnewsapp.util
 
 sealed class Resource<T>(
     val data: T? = null,
-    val error: Throwable? = null
+    val error: Throwable? = null//Using Throwable instead of String gives more flexibility over error
 ) {
     //There is no other options of subclasses available
     class Success<T>(data: T) : Resource<T>(data)

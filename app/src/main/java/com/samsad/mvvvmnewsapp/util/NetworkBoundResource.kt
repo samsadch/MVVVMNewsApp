@@ -6,11 +6,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+//RequestType - Type we get from the REST api
+//We are passing different functions which have different job
 inline fun <ResultType, RequestType> networkBoundResource(
-    crossinline query: () -> Flow<ResultType>,
-    crossinline fetch: suspend () -> RequestType,
-    crossinline saveFetchResult: suspend (RequestType) -> Unit,
-    crossinline shouldFetch: (ResultType) -> Boolean = { true }
+    crossinline query: () -> Flow<ResultType>,//Database Request
+    crossinline fetch: suspend () -> RequestType,//fetch new data from the rest api
+    crossinline saveFetchResult: suspend (RequestType) -> Unit,//Storing the data from rest api to database
+    crossinline shouldFetch: (ResultType) -> Boolean = { true }//
 ) = channelFlow {
     val data = query().first()
 
