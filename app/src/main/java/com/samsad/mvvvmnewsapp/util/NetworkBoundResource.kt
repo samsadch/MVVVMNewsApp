@@ -6,13 +6,14 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+//Mutable state flow always contains latest values where flow builder return all the values
 //RequestType - Type we get from the REST api
 //We are passing different functions which have different job
 inline fun <ResultType, RequestType> networkBoundResource(
     crossinline query: () -> Flow<ResultType>,//Database Request
     crossinline fetch: suspend () -> RequestType,//fetch new data from the rest api
     crossinline saveFetchResult: suspend (RequestType) -> Unit,//Storing the data from rest api to database
-    crossinline shouldFetch: (ResultType) -> Boolean = { true }//
+    crossinline shouldFetch: (ResultType) -> Boolean = { true }//CHeck if old data is fine or should fetch from api
 ) = channelFlow {
     val data = query().first()
 
