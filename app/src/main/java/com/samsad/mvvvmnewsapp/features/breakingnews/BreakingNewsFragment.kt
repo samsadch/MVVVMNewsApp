@@ -52,5 +52,6 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
                 }
             }
         }
+        viewModel.getNews()
     }
 }
