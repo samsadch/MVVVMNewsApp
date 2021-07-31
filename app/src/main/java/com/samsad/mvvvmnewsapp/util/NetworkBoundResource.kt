@@ -15,31 +15,23 @@ inline fun <ResultType, RequestType> networkBoundResource(
     crossinline saveFetchResult: suspend (RequestType) -> Unit,//Storing the data from rest api to database
     crossinline shouldFetch: (ResultType) -> Boolean = { true }//CHeck if old data is fine or should fetch from api
 ) = channelFlow {
+    //Return one value and then stop collecting from the flow (one list of news articles)
     val data = query().first()
 
     if (shouldFetch(data)) {
         val loading = launch {
-            query().collect {
-                send(Resource.Loading(it))
-            }
+            query().collect { send(Resource.Loading(it)) }
         }
-
         try {
-            kotlinx.coroutines.delay(2000)
             saveFetchResult(fetch())
             loading.cancel()
-            query().collect {
-                send(Resource.Success(it))
-            }
+            query().collect { send(Resource.Success(it)) }
         } catch (t: Throwable) {
             loading.cancel()
-            query().collect {
-                send(Resource.Error(t, it))
-            }
+            query().collect { send(Resource.Error(t, it)) }
         }
     } else {
-        query().collect {
-            send(Resource.Success(it))
-        }
+        //Fetch data from database
+        query().collect { send(Resource.Success(it)) }
     }
 }
