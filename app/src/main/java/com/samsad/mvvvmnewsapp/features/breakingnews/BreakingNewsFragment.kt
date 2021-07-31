@@ -32,6 +32,7 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
 
             viewLifecycleOwner.lifecycleScope.launchWhenStarted {
                 viewModel.breakingNews.collect {
+                    //return from this if the result is null
                     val result = it ?: return@collect
 
                     it.let {
@@ -51,7 +52,20 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
                     //newsArticleAdapter.submitList(it)
                 }
             }
+
+            swipeRefreshLayout.setOnRefreshListener {
+                viewModel.onManualRefresh()
+            }
+
+            buttonRetry.setOnClickListener {
+                viewModel.onManualRefresh()
+            }
         }
         viewModel.getNews()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.onStart()
     }
 }
