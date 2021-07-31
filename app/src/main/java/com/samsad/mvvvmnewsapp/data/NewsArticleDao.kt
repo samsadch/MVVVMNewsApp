@@ -1,6 +1,9 @@
 package com.samsad.mvvvmnewsapp.data
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,4 +21,7 @@ interface NewsArticleDao {
 
     @Query("DELETE FROM breaking_news")
     suspend fun deleteAllBreakingNews()
+
+    @Query("DELETE FROM news_articles WHERE updatedAt < :timeStampInMillis AND isBookmarked = 0")
+    suspend fun deleteNonBookmarkedArticlesOlderThan(timeStampInMillis: Long)
 }

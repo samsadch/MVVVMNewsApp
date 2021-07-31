@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,13 +22,14 @@ class BreakingNewsViewModel @Inject constructor(
     private val eventChannel = Channel<Event>()
     val events = eventChannel.receiveAsFlow()
 
-    private val refreshingTriggerChannel = Channel<Unit>()
+    private val refreshingTriggerChannel = Channel<Refresh>()
     private val refreshTrigger = refreshingTriggerChannel.receiveAsFlow()
 
     var pendingScrollToTopAfterRefresh = false
 
-    val breakingNews = refreshTrigger.flatMapLatest {
+    val breakingNews = refreshTrigger.flatMapLatest { refresh ->
         repository.getBreakingNews(
+            refresh == Refresh.FORCE,
             onFetchSuccess = {
                 pendingScrollToTopAfterRefresh = true
             },
@@ -37,11 +39,19 @@ class BreakingNewsViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    init {
+        viewModelScope.launch {
+            repository.deleteNonBookmarkedArticlesOlderThan(
+                //Less than 7 days
+                System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
+            )
+        }
+    }
 
     fun onStart() {
         if (breakingNews.value !is Resource.Loading) {
             viewModelScope.launch {
-                refreshingTriggerChannel.send(Unit)
+                refreshingTriggerChannel.send(Refresh.NORMAL)
             }
         }
     }
@@ -49,9 +59,13 @@ class BreakingNewsViewModel @Inject constructor(
     fun onManualRefresh() {
         if (breakingNews.value !is Resource.Loading) {
             viewModelScope.launch {
-                refreshingTriggerChannel.send(Unit)
+                refreshingTriggerChannel.send(Refresh.FORCE)
             }
         }
+    }
+
+    enum class Refresh {
+        FORCE, NORMAL
     }
 
     sealed class Event() {

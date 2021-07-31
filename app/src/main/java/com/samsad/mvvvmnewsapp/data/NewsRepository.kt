@@ -7,6 +7,7 @@ import com.samsad.mvvvmnewsapp.util.networkBoundResource
 import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 //When its time to instantiate this class, injects the dependencies from the DI Module
@@ -17,6 +18,7 @@ class NewsRepository @Inject constructor(
     private val newsArticleDao = newsArticleDb.newsArticleDao()
 
     fun getBreakingNews(
+        forceRefresh: Boolean,
         onFetchSuccess: () -> Unit,
         onFetchFailed: (Throwable) -> Unit
     ): Flow<Resource<List<NewsArticle>>> =
@@ -48,6 +50,21 @@ class NewsRepository @Inject constructor(
                     newsArticleDao.insertBreakingNews(breakingNews)
                 }
             },
+            shouldFetch = { cachedArticles ->
+                if (forceRefresh) {
+                    true
+                } else {
+                    val sortedArticles = cachedArticles.sortedBy { article ->
+                        article.updatedAt
+                    }
+                    val oldestTimeStamp = sortedArticles.firstOrNull()?.updatedAt
+                    val needsRefresh = oldestTimeStamp == null ||
+                            oldestTimeStamp < System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(
+                        5
+                    )
+                    needsRefresh
+                }
+            },
             onFetchSuccess = onFetchSuccess,
             onFetchFailed = { t ->
                 if (t !is HttpException && t !is IOException) {
@@ -56,4 +73,8 @@ class NewsRepository @Inject constructor(
                 onFetchFailed(t)
             }
         )
+
+    suspend fun deleteNonBookmarkedArticlesOlderThan(timeStamp: Long) {
+        newsArticleDao.deleteNonBookmarkedArticlesOlderThan(timeStamp)
+    }
 }
