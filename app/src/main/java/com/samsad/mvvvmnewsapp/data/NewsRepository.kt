@@ -5,6 +5,8 @@ import com.samsad.mvvvmnewsapp.api.NewsApi
 import com.samsad.mvvvmnewsapp.util.Resource
 import com.samsad.mvvvmnewsapp.util.networkBoundResource
 import kotlinx.coroutines.flow.Flow
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 //When its time to instantiate this class, injects the dependencies from the DI Module
@@ -14,21 +16,10 @@ class NewsRepository @Inject constructor(
 ) {
     private val newsArticleDao = newsArticleDb.newsArticleDao()
 
-    /*suspend fun getBreakingNews(): List<NewsArticle> {
-        val response = newsApi.getBreakingNews()
-        val serverBreakingNewsArticles = response.articles
-        val breakingNewsArticles = serverBreakingNewsArticles.map { serverBreakingNewsArticle ->
-            NewsArticle(
-                title = serverBreakingNewsArticle.title,
-                url = serverBreakingNewsArticle.url,
-                thumbnailUrl = serverBreakingNewsArticle.urlToImage,
-                isBookmarked = false
-            )
-        }
-        return breakingNewsArticles
-    }*/
-
-    fun getBreakingNews(): Flow<Resource<List<NewsArticle>>> =
+    fun getBreakingNews(
+        onFetchSuccess: () -> Unit,
+        onFetchFailed: (Throwable) -> Unit
+    ): Flow<Resource<List<NewsArticle>>> =
         networkBoundResource(
             query = {
                 newsArticleDao.getAllBreakingNewsArticles()
@@ -56,6 +47,13 @@ class NewsRepository @Inject constructor(
                     newsArticleDao.insertArticles(breakingNewsArticles)
                     newsArticleDao.insertBreakingNews(breakingNews)
                 }
+            },
+            onFetchSuccess = onFetchSuccess,
+            onFetchFailed = { t ->
+                if (t !is HttpException && t !is IOException) {
+                    throw t
+                }
+                onFetchFailed(t)
             }
         )
 }

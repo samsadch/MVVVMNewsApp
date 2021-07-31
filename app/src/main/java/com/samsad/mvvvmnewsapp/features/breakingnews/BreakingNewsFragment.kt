@@ -1,6 +1,9 @@
 package com.samsad.mvvvmnewsapp.features.breakingnews
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -11,6 +14,7 @@ import com.samsad.mvvvmnewsapp.R
 import com.samsad.mvvvmnewsapp.databinding.FragmentBreakingNewsBinding
 import com.samsad.mvvvmnewsapp.shared.NewsArticleAdapter
 import com.samsad.mvvvmnewsapp.util.Resource
+import com.samsad.mvvvmnewsapp.util.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 
@@ -47,9 +51,13 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
                             result.error?.localizedMessage
                                 ?: getString(R.string.unknown_error_occurred)
                         )
-                        newsArticleAdapter.submitList(result.data)
+                        newsArticleAdapter.submitList(result.data) {
+                            if (viewModel.pendingScrollToTopAfterRefresh) {
+                                recyclerView.scrollToPosition(0)
+                                viewModel.pendingScrollToTopAfterRefresh = false
+                            }
+                        }
                     }
-                    //newsArticleAdapter.submitList(it)
                 }
             }
 
@@ -60,12 +68,41 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
             buttonRetry.setOnClickListener {
                 viewModel.onManualRefresh()
             }
+
+            viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is BreakingNewsViewModel.Event.ShowErrorMessage -> {
+                            showSnackbar(
+                                getString(
+                                    R.string.could_not_refresh,
+                                    event.error.localizedMessage
+                                        ?: getString(R.string.unknown_error_occurred)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
-        viewModel.getNews()
+        setHasOptionsMenu(true)
     }
 
     override fun onStart() {
         super.onStart()
         viewModel.onStart()
     }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_breaking_news, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) =
+        when (item.itemId) {
+            R.id.action_refresh -> {
+                viewModel.onManualRefresh()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
 }

@@ -2,12 +2,14 @@ package com.samsad.mvvvmnewsapp.features.breakingnews
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.samsad.mvvvmnewsapp.data.NewsArticle
 import com.samsad.mvvvmnewsapp.data.NewsRepository
 import com.samsad.mvvvmnewsapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,20 +18,25 @@ class BreakingNewsViewModel @Inject constructor(
     private val repository: NewsRepository
 ) : ViewModel() {
 
+    private val eventChannel = Channel<Event>()
+    val events = eventChannel.receiveAsFlow()
+
     private val refreshingTriggerChannel = Channel<Unit>()
     private val refreshTrigger = refreshingTriggerChannel.receiveAsFlow()
 
-    lateinit var breakingNews: StateFlow<Resource<List<NewsArticle>>?>
+    var pendingScrollToTopAfterRefresh = false
 
-    fun getNews() {
-        //stateIn turns flow into mutable stateFlow
-        /* breakingNews = repository.getBreakingNews()
-             .stateIn(viewModelScope, SharingStarted.Lazily, null)*/
+    val breakingNews = refreshTrigger.flatMapLatest {
+        repository.getBreakingNews(
+            onFetchSuccess = {
+                pendingScrollToTopAfterRefresh = true
+            },
+            onFetchFailed = { t ->
+                viewModelScope.launch { eventChannel.send(Event.ShowErrorMessage(t)) }
+            }
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-        breakingNews = refreshTrigger.flatMapLatest {
-            repository.getBreakingNews()
-        }.stateIn(viewModelScope, SharingStarted.Lazily, null)
-    }
 
     fun onStart() {
         if (breakingNews.value !is Resource.Loading) {
@@ -47,16 +54,7 @@ class BreakingNewsViewModel @Inject constructor(
         }
     }
 
-    /*private val breakingNewsFlow = MutableStateFlow<List<NewsArticle>>(emptyList())
-    val breakingNews: Flow<List<NewsArticle>> = breakingNewsFlow
-
-    init {
-        //Coroutines advantages
-        //1.Remove callbacks
-        //2.structured concurrency -
-        viewModelScope.launch {
-            val news = repository.getBreakingNews()
-            breakingNewsFlow.value = news
-        }
-    }*/
+    sealed class Event() {
+        data class ShowErrorMessage(val error: Throwable) : Event()
+    }
 }

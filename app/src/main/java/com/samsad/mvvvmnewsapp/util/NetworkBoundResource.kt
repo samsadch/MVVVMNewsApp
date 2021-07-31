@@ -13,7 +13,9 @@ inline fun <ResultType, RequestType> networkBoundResource(
     crossinline query: () -> Flow<ResultType>,//Database Request
     crossinline fetch: suspend () -> RequestType,//fetch new data from the rest api
     crossinline saveFetchResult: suspend (RequestType) -> Unit,//Storing the data from rest api to database
-    crossinline shouldFetch: (ResultType) -> Boolean = { true }//CHeck if old data is fine or should fetch from api
+    crossinline shouldFetch: (ResultType) -> Boolean = { true },//CHeck if old data is fine or should fetch from api
+    crossinline onFetchSuccess: () -> Unit = {},
+    crossinline onFetchFailed: (Throwable) -> Unit = {}
 ) = channelFlow {
     //Return one value and then stop collecting from the flow (one list of news articles)
     val data = query().first()
@@ -24,9 +26,11 @@ inline fun <ResultType, RequestType> networkBoundResource(
         }
         try {
             saveFetchResult(fetch())
+            onFetchSuccess()
             loading.cancel()
             query().collect { send(Resource.Success(it)) }
         } catch (t: Throwable) {
+            onFetchFailed(t)
             loading.cancel()
             query().collect { send(Resource.Error(t, it)) }
         }
