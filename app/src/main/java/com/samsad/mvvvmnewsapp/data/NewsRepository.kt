@@ -5,6 +5,7 @@ import com.samsad.mvvvmnewsapp.api.NewsApi
 import com.samsad.mvvvmnewsapp.util.Resource
 import com.samsad.mvvvmnewsapp.util.networkBoundResource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import retrofit2.HttpException
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -31,13 +32,19 @@ class NewsRepository @Inject constructor(
                 response.articles
             },
             saveFetchResult = { serverBreakingNewsArticles ->
+                val bookmarkedArticles = newsArticleDao.getAllBookmarkedArticles().first()
                 val breakingNewsArticles =
                     serverBreakingNewsArticles.map { serverBreakingNewsArticle ->
+                        //Returns `true` if at least one element matches the given criteria
+                        val isBookmarked = bookmarkedArticles.any { bookmarkedArticle ->
+                            bookmarkedArticle.url == serverBreakingNewsArticle.url
+                        }
+
                         NewsArticle(
                             title = serverBreakingNewsArticle.title,
                             url = serverBreakingNewsArticle.url,
                             thumbnailUrl = serverBreakingNewsArticle.urlToImage,
-                            isBookmarked = false
+                            isBookmarked = isBookmarked
                         )
                     }
                 val breakingNews = breakingNewsArticles.map { article ->
