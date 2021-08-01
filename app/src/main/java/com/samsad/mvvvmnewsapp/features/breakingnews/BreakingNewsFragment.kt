@@ -1,5 +1,7 @@
 package com.samsad.mvvvmnewsapp.features.breakingnews
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
@@ -26,7 +28,16 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
         super.onViewCreated(view, savedInstanceState)
 
         val binding = FragmentBreakingNewsBinding.bind(view)
-        val newsArticleAdapter = NewsArticleAdapter()
+        val newsArticleAdapter = NewsArticleAdapter(
+            onItemClick = { article ->
+                val uri = Uri.parse(article.url)
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                requireActivity().startActivity(intent)
+            },
+            onBookmarkClick = { article ->
+                viewModel.onBookmarkClick(article)
+            }
+        )
         binding.apply {
             recyclerView.apply {
                 adapter = newsArticleAdapter
