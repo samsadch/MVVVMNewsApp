@@ -1,9 +1,6 @@
 package com.samsad.mvvvmnewsapp.data
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,6 +15,9 @@ interface NewsArticleDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBreakingNews(breakingNews: List<BreakingNews>)
+
+    @Update
+    suspend fun updateArticle(article: NewsArticle)
 
     @Query("DELETE FROM breaking_news")
     suspend fun deleteAllBreakingNews()
