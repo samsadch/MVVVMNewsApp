@@ -74,6 +74,10 @@ class NewsRepository @Inject constructor(
             }
         )
 
+    suspend fun updateArticle(article: NewsArticle) {
+        newsArticleDao.updateArticle(article)
+    }
+
     suspend fun deleteNonBookmarkedArticlesOlderThan(timeStamp: Long) {
         newsArticleDao.deleteNonBookmarkedArticlesOlderThan(timeStamp)
     }
