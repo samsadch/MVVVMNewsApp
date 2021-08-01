@@ -43,6 +43,7 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
                 adapter = newsArticleAdapter
                 layoutManager = LinearLayoutManager(requireContext())
                 setHasFixedSize(true)
+                itemAnimator?.changeDuration = 0
             }
 
             viewLifecycleOwner.lifecycleScope.launchWhenStarted {
