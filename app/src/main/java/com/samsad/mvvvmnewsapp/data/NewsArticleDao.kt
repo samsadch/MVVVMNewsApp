@@ -22,6 +22,9 @@ interface NewsArticleDao {
     @Update
     suspend fun updateArticle(article: NewsArticle)
 
+    @Query("UPDATE news_articles SET isBookmarked=0")
+    suspend fun resetAllBookmarks()
+
     @Query("DELETE FROM breaking_news")
     suspend fun deleteAllBreakingNews()
 
